@@ -7,13 +7,25 @@ if (!isset($_SESSION['account_id'])) {
     exit();
 }
 
-$role = $_SESSION['role'] ?? null; // Voeg dit toe
+$role = $_SESSION['role'] ?? null;
+
+$search = $_GET['search'] ?? '';
+$search = $conn->real_escape_string($search);
 
 $storage = [];
 $query = "SELECT * FROM `voorraad` 
 INNER JOIN product ON voorraad.product_idproduct = product.idproduct
 INNER JOIN locatie ON voorraad.locatie_idlocatie = locatie.idlocatie
-INNER JOIN fabriek on product.fabriek_idfabriek = fabriek.idfabriek;";
+INNER JOIN fabriek on product.fabriek_idfabriek = fabriek.idfabriek";
+
+if (!empty($search)) {
+    $query .= " WHERE 
+        product.omschrijving LIKE '%$search%' OR 
+        locatie.plaats LIKE '%$search%' OR 
+        voorraad.inkoopprijs LIKE '%$search%' OR 
+        voorraad.verkoopprijs LIKE '%$search%'";
+}
+
 $result = $conn->query($query);
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -26,122 +38,120 @@ if ($result->num_rows > 0) {
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Overzicht</title>
     <style>
         table {
             width: 100%;
             border-collapse: collapse;
         }
-
         th,
         td {
             border: 1px solid black;
             padding: 8px;
             text-align: left;
         }
-
         th {
             background-color: #f2f2f2;
         }
-
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
-
         tr:hover {
             background-color: #f5f5f5;
         }
-
         h1 {
             text-align: center;
         }
-
         table {
             margin: 0 auto;
         }
-
         body {
             font-family: Arial, sans-serif;
         }
-
         a {
             text-decoration: none;
             color: black;
         }
-
         a:hover {
             color: blue;
         }
-
         a:visited {
             color: black;
         }
-
         a:active {
             color: black;
         }
-
         .logout-btn {
-             padding: 10px 20px;
-             background-color: #4CAF50; /* Groen */
-             color: white;
-             border: none;
-             border-radius: 5px;
-             cursor: pointer;
-             font-weight: bold;
-             transition: background-color 0.3s ease;
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
         }
         .logout-btn:hover {
-            background-color:rgb(5, 19, 6); /* Donkerder groen bij hover */
+            background-color: rgb(5, 19, 6);
         }
-
         .action-buttons a.btn {
-    padding: 6px 12px;
-    margin-right: 5px;
-    border-radius: 5px;
-    color: white;
-    font-weight: bold;
-    text-decoration: none;
-    transition: background-color 0.2s ease-in-out;
-}
-
-a.btn.update {
-    background-color: #007bff; /* blauw */
-}
-
-a.btn.update:hover {
-    background-color: #0056b3;
-}
-
-a.btn.delete {
-    background-color: #dc3545; /* rood */
-}
-
-a.btn.delete:hover {
-    background-color: #a71d2a;
-}
-
-a.btn.add {
-    background-color: #28a745; /* groen */
-}
-
-a.btn.add:hover {
-    background-color: #1e7e34;
-}
-
+            padding: 6px 12px;
+            margin-right: 5px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.2s ease-in-out;
+        }
+        a.btn.update {
+            background-color: #007bff;
+        }
+        a.btn.update:hover {
+            background-color: #0056b3;
+        }
+        a.btn.delete {
+            background-color: #dc3545;
+        }
+        a.btn.delete:hover {
+            background-color: #a71d2a;
+        }
+        a.btn.add {
+            background-color: #28a745;
+        }
+        a.btn.add:hover {
+            background-color: #1e7e34;
+        }
+        form.search-form {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form.search-form input[type="text"] {
+            padding: 6px;
+            width: 300px;
+            max-width: 90%;
+            font-size: 1rem;
+        }
+        form.search-form button {
+            padding: 6px 12px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
     <form action="logout.php" method="post" style="position: absolute; top: 20px; left: 20px;">
-        <button type="submit" class="logout-btn">
-            Logout
-        </button>
+        <button type="submit" class="logout-btn">Logout</button>
     </form>
 
     <h1>Overzicht</h1>
+
+    <form method="GET" action="" class="search-form">
+        <input type="text" name="search" placeholder="Zoek op naam, locatie of prijs" value="<?php echo htmlspecialchars($search); ?>" />
+        <button type="submit">Zoeken</button>
+    </form>
 
     <table>
         <tr>
@@ -155,9 +165,8 @@ a.btn.add:hover {
                 <th>Verkoopprijs</th>
                 <th>Acties</th>
             <?php elseif ($role === "user") : ?>
-                <th>prijs</th>
+                <th>Prijs</th>
             <?php endif; ?>
-
         </tr>
         <?php foreach ($storage as $row) : ?>
             <tr>
