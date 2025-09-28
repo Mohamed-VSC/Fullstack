@@ -138,6 +138,44 @@ if ($result->num_rows > 0) {
             font-size: 1rem;
             cursor: pointer;
         }
+
+        /* Dropdown container */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Verborgen inhoud */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            border: 1px solid #ddd;
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Toon dropdown bij hover */
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Knopjes in dropdown */
+        .dropdown-content button {
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #f1f1f1;
+        }
     </style>
 </head>
 
@@ -145,6 +183,33 @@ if ($result->num_rows > 0) {
     <form action="logout.php" method="post" style="position: absolute; top: 20px; left: 20px;">
         <button type="submit" class="logout-btn">Logout</button>
     </form>
+
+    <!-- Cart en Add to Cart knoppen -->
+    <div style="position: absolute; top: 20px; right: 20px; display:flex; gap:10px;">
+        <!-- Cart knop -->
+        <a href="view_cart.php" style="padding: 10px; background-color: orange; color: white; border-radius: 5px;">
+            Cart (<?php echo isset($_SESSION['cart']) ? array_sum(array_column($_SESSION['cart'], 'quantity')) : 0; ?>)
+        </a>
+
+        <!-- Add to Cart dropdown -->
+        <div class="dropdown">
+            <button class="dropbtn" style="padding: 10px; background-color: green; color: white; border-radius: 5px; cursor:pointer;">
+                Add to Cart
+            </button>
+            <div class="dropdown-content">
+                <?php foreach ($storage as $row) : ?>
+                    <form method="post" action="cart.php" style="margin:0;">
+                        <input type="hidden" name="product_id" value="<?php echo $row['idvoorraad']; ?>">
+                        <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($row['omschrijving']); ?>">
+                        <input type="hidden" name="product_price" value="<?php echo $row['verkoopprijs']; ?>">
+                        <button type="submit">
+                            <?php echo htmlspecialchars($row['omschrijving']); ?>
+                        </button>
+                    </form>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
 
     <h1>Overzicht</h1>
 
@@ -179,8 +244,8 @@ if ($result->num_rows > 0) {
                     <td><?php echo htmlspecialchars($row['inkoopprijs'] ?? ''); ?></td>
                     <td><?php echo htmlspecialchars($row['verkoopprijs'] ?? ''); ?></td>
                     <td class="action-buttons">
-                        <a class="btn update" href="edit.php?id=<?php echo htmlspecialchars($row['id'] ?? ''); ?>">Update</a>
-                        <a class="btn delete" href="delete.php?id=<?php echo htmlspecialchars($row['id'] ?? ''); ?>">Delete</a>
+                        <a class="btn update" href="update.php?id=<?php echo htmlspecialchars($row['idvoorraad'] ?? ''); ?>">Update</a>
+                        <a class="btn delete" href="delete.php?id=<?php echo htmlspecialchars($row['idvoorraad'] ?? ''); ?>">Delete</a>
                         <a class="btn add" href="add.php?id=<?php echo htmlspecialchars($row['id'] ?? ''); ?>">Add</a>
                     </td>
                 <?php elseif ($role === "user") : ?>
